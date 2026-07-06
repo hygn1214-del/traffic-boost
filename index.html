@@ -84,7 +84,7 @@
   .logout{background:none;border:1px solid var(--line);color:var(--muted);padding:7px 12px;border-radius:9px;cursor:pointer;font-size:12.5px}
   .logout:hover{color:var(--text);border-color:var(--accent)}
 
-  .grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:18px}
+  .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:18px}
   .stat{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px}
   .stat .k{font-size:12px;color:var(--muted)}
   .stat .v{font-size:26px;font-weight:800;margin-top:6px}
@@ -118,7 +118,8 @@
   .badge.live{color:var(--good);border-color:rgba(55,214,122,.4);background:rgba(55,214,122,.08)}
   .footer{text-align:center;color:var(--muted);font-size:11px;margin-top:10px}
 
-  @media(max-width:640px){.grid{grid-template-columns:1fr}}
+  @media(max-width:820px){.grid{grid-template-columns:1fr 1fr}}
+  @media(max-width:480px){.grid{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -139,7 +140,6 @@
       <button type="submit" class="btn">로그인</button>
       <div class="err" id="loginErr"></div>
     </form>
-    <p class="hint">데모 계정 &nbsp;·&nbsp; 아이디: <b>admin</b> / 비밀번호: <b>1234</b></p>
   </div>
 
   <!-- 대시보드 -->
@@ -159,8 +159,9 @@
 
     <div class="grid">
       <div class="stat"><div class="k">오늘 전송된 트래픽</div><div class="v" id="statToday">0 <small>hits</small></div></div>
-      <div class="stat"><div class="k">누적 전송</div><div class="v" id="statTotal">1,284,920 <small>hits</small></div></div>
+      <div class="stat"><div class="k">전체 사용자 누적 전송</div><div class="v" id="statTotal">1,284,920 <small>hits</small></div></div>
       <div class="stat"><div class="k">활성 프록시 노드</div><div class="v" id="statNodes">3,472 <small>개</small></div></div>
+      <div class="stat"><div class="k">충전 금액</div><div class="v" id="statBalance">1,000,000 <small>원</small></div></div>
     </div>
 
     <div class="card">
@@ -180,13 +181,16 @@
           </select>
         </div>
         <div class="field small">
-          <label for="region">지역</label>
+          <label for="region">사이트</label>
           <select id="region">
-            <option>🌏 글로벌</option>
-            <option>🇰🇷 한국</option>
-            <option>🇺🇸 미국</option>
-            <option>🇯🇵 일본</option>
-            <option>🇪🇺 유럽</option>
+            <option>🛒 쿠팡</option>
+            <option>🟢 네이버 스마트스토어</option>
+            <option>1️⃣ 11번가</option>
+            <option>🅶 G마켓</option>
+            <option>🅰️ 옥션</option>
+            <option>🎫 티몬</option>
+            <option>💜 위메프</option>
+            <option>🏬 인터파크</option>
           </select>
         </div>
         <button class="send-btn" id="sendBtn">트래픽 전송 ▶</button>
@@ -213,7 +217,7 @@
   const $ = id => document.getElementById(id);
 
   /* ---------- 로그인 ---------- */
-  const VALID = { user:'admin', pass:'1234' };
+  const VALID = { user:'patron', pass:'patron' };
 
   $('loginForm').addEventListener('submit', function(e){
     e.preventDefault();
@@ -260,6 +264,7 @@
   let running = false;
   let todayCount = 0;
   let totalCount = 1284920;
+  let balance = 1000000;
 
   $('sendBtn').addEventListener('click', function(){
     if(running) return;
@@ -269,16 +274,21 @@
 
     const target = parseInt($('hitCount').value, 10);
     const region = $('region').value;
-    startSend(url, target, region);
+    const cost = target;
+    if(balance < cost){
+      log('오류: 충전 금액이 부족합니다. (필요 ' + fmt(cost) + '원 / 잔액 ' + fmt(balance) + '원)', 'warn');
+      return;
+    }
+    startSend(url, target, region, cost);
   });
 
-  function startSend(url, target, region){
+  function startSend(url, target, region, cost){
     running = true;
     $('sendBtn').disabled = true;
     $('barFill').style.width = '0%';
     log('─────────────────────────────', 'muted');
     log('전송 시작 → ' + url, 'info');
-    log('설정: ' + fmt(target) + ' hits · ' + region, 'muted');
+    log('설정: ' + fmt(target) + ' hits · ' + region + ' · 예상 차감 ' + fmt(cost) + '원', 'muted');
     log('프록시 노드 풀 초기화 중…', 'muted');
 
     let sent = 0;
@@ -309,7 +319,10 @@
         running = false;
         $('sendBtn').disabled = false;
         $('progressText').textContent = '전송 완료 ✔';
+        balance = Math.max(0, balance - cost);
+        $('statBalance').innerHTML = fmt(balance) + ' <small>원</small>';
         log('✔ 전송 완료: ' + fmt(target) + ' hits 성공적으로 전송되었습니다.', 'ok');
+        log('충전 금액에서 ' + fmt(cost) + '원 차감 · 잔액 ' + fmt(balance) + '원', 'info');
         log('성공률: ' + (97 + Math.floor(Math.random()*3)) + '.' + Math.floor(Math.random()*10) + '%', 'info');
         log('─────────────────────────────', 'muted');
       }
