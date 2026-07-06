@@ -183,14 +183,14 @@
         <div class="field small">
           <label for="region">사이트</label>
           <select id="region">
-            <option>🛒 쿠팡</option>
-            <option>🟢 네이버 스마트스토어</option>
-            <option>1️⃣ 11번가</option>
-            <option>🅶 G마켓</option>
-            <option>🅰️ 옥션</option>
-            <option>🎫 티몬</option>
-            <option>💜 위메프</option>
-            <option>🏬 인터파크</option>
+            <option value="coupang">🛒 쿠팡</option>
+            <option value="naver">🟢 네이버 스마트스토어</option>
+            <option value="11st">1️⃣ 11번가</option>
+            <option value="gmarket">🅶 G마켓</option>
+            <option value="auction">🅰️ 옥션</option>
+            <option value="tmon">🎫 티몬</option>
+            <option value="wemakeprice">💜 위메프</option>
+            <option value="interpark">🏬 인터파크</option>
           </select>
         </div>
         <button class="send-btn" id="sendBtn">트래픽 전송 ▶</button>
@@ -265,6 +265,28 @@
   let todayCount = 0;
   let totalCount = 1284920;
   let balance = 1000000;
+  const COST_PER_SEND = 100000;
+
+  /* 사이트별 허용 도메인 (링크가 해당 판매처가 아니면 실패 처리) */
+  const SITE_DOMAINS = {
+    coupang:     { name:'쿠팡',                domains:['coupang.com','coupa.ng'] },
+    naver:       { name:'네이버 스마트스토어', domains:['naver.com','naver.me'] },
+    '11st':      { name:'11번가',              domains:['11st.co.kr'] },
+    gmarket:     { name:'G마켓',               domains:['gmarket.co.kr'] },
+    auction:     { name:'옥션',                domains:['auction.co.kr'] },
+    tmon:        { name:'티몬',                domains:['tmon.co.kr'] },
+    wemakeprice: { name:'위메프',              domains:['wemakeprice.com','wmp.co.kr'] },
+    interpark:   { name:'인터파크',            domains:['interpark.com'] }
+  };
+
+  function urlMatchesSite(url, siteKey){
+    let host;
+    try { host = new URL(url).hostname.toLowerCase(); }
+    catch(e){ return false; }
+    const site = SITE_DOMAINS[siteKey];
+    if(!site) return true;
+    return site.domains.some(d => host === d || host.endsWith('.' + d));
+  }
 
   $('sendBtn').addEventListener('click', function(){
     if(running) return;
@@ -273,13 +295,21 @@
     if(!/^https?:\/\//i.test(url)){ log('오류: http:// 또는 https:// 로 시작하는 URL을 입력하세요.', 'warn'); return; }
 
     const target = parseInt($('hitCount').value, 10);
-    const region = $('region').value;
-    const cost = target;
+    const siteKey = $('region').value;
+    const siteName = SITE_DOMAINS[siteKey] ? SITE_DOMAINS[siteKey].name : siteKey;
+
+    if(!urlMatchesSite(url, siteKey)){
+      log('✖ 실패: 입력한 링크가 선택한 사이트(' + siteName + ')의 주소가 아닙니다.', 'warn');
+      log('  → ' + siteName + ' 상품 링크를 입력한 뒤 다시 시도하세요.', 'muted');
+      return;
+    }
+
+    const cost = COST_PER_SEND;
     if(balance < cost){
       log('오류: 충전 금액이 부족합니다. (필요 ' + fmt(cost) + '원 / 잔액 ' + fmt(balance) + '원)', 'warn');
       return;
     }
-    startSend(url, target, region, cost);
+    startSend(url, target, siteName, cost);
   });
 
   function startSend(url, target, region, cost){
