@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TrafficBoost Pro — 트래픽 부스터</title>
+<style>
+  :root{
+    --bg:#0b1020;
+    --panel:#141a2e;
+    --panel2:#1b2340;
+    --line:#26304f;
+    --text:#e8ecf7;
+    --muted:#8b96b8;
+    --accent:#5b8cff;
+    --accent2:#7a5bff;
+    --good:#37d67a;
+    --warn:#ffb020;
+    --danger:#ff5470;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
+    background:radial-gradient(1200px 800px at 80% -10%,#1c2650 0%,transparent 60%),
+               radial-gradient(1000px 700px at -10% 110%,#2a1c50 0%,transparent 55%),
+               var(--bg);
+    color:var(--text);
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:20px;
+  }
+  .hidden{display:none !important;}
+
+  /* ---------- 로그인 ---------- */
+  .login-card{
+    width:100%;
+    max-width:400px;
+    background:linear-gradient(180deg,var(--panel2),var(--panel));
+    border:1px solid var(--line);
+    border-radius:18px;
+    padding:36px 30px;
+    box-shadow:0 30px 80px rgba(0,0,0,.5);
+  }
+  .brand{display:flex;align-items:center;gap:12px;margin-bottom:8px;justify-content:center}
+  .logo{
+    width:44px;height:44px;border-radius:12px;
+    background:linear-gradient(135deg,var(--accent),var(--accent2));
+    display:flex;align-items:center;justify-content:center;font-size:22px;
+    box-shadow:0 8px 24px rgba(91,140,255,.4);
+  }
+  .brand h1{font-size:22px;font-weight:800;letter-spacing:-.5px}
+  .brand h1 span{background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;background-clip:text;color:transparent}
+  .subtitle{text-align:center;color:var(--muted);font-size:13px;margin-bottom:28px}
+  label{display:block;font-size:13px;color:var(--muted);margin:16px 0 7px}
+  input{
+    width:100%;padding:13px 14px;border-radius:11px;
+    background:#0e1428;border:1px solid var(--line);color:var(--text);
+    font-size:14px;outline:none;transition:.15s;
+  }
+  input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(91,140,255,.15)}
+  .btn{
+    width:100%;margin-top:24px;padding:13px;border:none;border-radius:11px;
+    background:linear-gradient(135deg,var(--accent),var(--accent2));
+    color:#fff;font-size:15px;font-weight:700;cursor:pointer;transition:.15s;
+  }
+  .btn:hover{transform:translateY(-1px);box-shadow:0 10px 30px rgba(91,140,255,.4)}
+  .btn:active{transform:translateY(0)}
+  .err{color:var(--danger);font-size:12.5px;margin-top:12px;text-align:center;min-height:16px}
+  .hint{color:var(--muted);font-size:11.5px;text-align:center;margin-top:18px;line-height:1.6}
+
+  /* ---------- 대시보드 ---------- */
+  .app{width:100%;max-width:920px;}
+  .topbar{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:16px 22px;background:var(--panel);border:1px solid var(--line);
+    border-radius:16px;margin-bottom:18px;
+  }
+  .topbar .brand{margin:0}
+  .topbar .brand h1{font-size:18px}
+  .user{display:flex;align-items:center;gap:12px;font-size:13px;color:var(--muted)}
+  .avatar{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--good),var(--accent));display:flex;align-items:center;justify-content:center;font-weight:700;color:#04101f}
+  .logout{background:none;border:1px solid var(--line);color:var(--muted);padding:7px 12px;border-radius:9px;cursor:pointer;font-size:12.5px}
+  .logout:hover{color:var(--text);border-color:var(--accent)}
+
+  .grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:18px}
+  .stat{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px}
+  .stat .k{font-size:12px;color:var(--muted)}
+  .stat .v{font-size:26px;font-weight:800;margin-top:6px}
+  .stat .v small{font-size:13px;color:var(--muted);font-weight:600}
+
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:22px;margin-bottom:18px}
+  .card h2{font-size:15px;margin-bottom:16px;display:flex;align-items:center;gap:8px}
+  .row{display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end}
+  .field{flex:1;min-width:200px}
+  .field.small{flex:0 0 140px}
+  select{width:100%;padding:13px 14px;border-radius:11px;background:#0e1428;border:1px solid var(--line);color:var(--text);font-size:14px;outline:none}
+  .send-btn{padding:13px 26px;border:none;border-radius:11px;background:linear-gradient(135deg,var(--good),#2bb765);color:#04140a;font-weight:800;font-size:14px;cursor:pointer;white-space:nowrap}
+  .send-btn:hover{transform:translateY(-1px)}
+  .send-btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
+
+  .progress-wrap{margin-top:20px}
+  .bar{height:12px;background:#0e1428;border-radius:8px;overflow:hidden;border:1px solid var(--line)}
+  .bar-fill{height:100%;width:0;background:linear-gradient(90deg,var(--accent),var(--good));transition:width .3s;border-radius:8px}
+  .progress-meta{display:flex;justify-content:space-between;margin-top:8px;font-size:12.5px;color:var(--muted)}
+
+  .console{margin-top:18px;background:#080c18;border:1px solid var(--line);border-radius:12px;padding:14px;height:180px;overflow-y:auto;font-family:'Consolas',monospace;font-size:12.5px;line-height:1.75}
+  .console .line{margin-bottom:2px}
+  .c-ok{color:var(--good)}
+  .c-info{color:var(--accent)}
+  .c-warn{color:var(--warn)}
+  .c-muted{color:var(--muted)}
+  .console::-webkit-scrollbar{width:8px}
+  .console::-webkit-scrollbar-thumb{background:var(--line);border-radius:8px}
+
+  .badge{font-size:11px;padding:3px 9px;border-radius:20px;background:var(--panel2);border:1px solid var(--line);color:var(--muted)}
+  .badge.live{color:var(--good);border-color:rgba(55,214,122,.4);background:rgba(55,214,122,.08)}
+  .footer{text-align:center;color:var(--muted);font-size:11px;margin-top:10px}
+
+  @media(max-width:640px){.grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+  <!-- 로그인 화면 -->
+  <div class="login-card" id="loginScreen">
+    <div class="brand">
+      <div class="logo">🚀</div>
+      <h1>Traffic<span>Boost</span></h1>
+    </div>
+    <p class="subtitle">링크 트래픽 부스터 · Pro Edition</p>
+
+    <form id="loginForm">
+      <label for="uid">아이디</label>
+      <input type="text" id="uid" placeholder="아이디를 입력하세요" autocomplete="username">
+      <label for="pw">비밀번호</label>
+      <input type="password" id="pw" placeholder="비밀번호를 입력하세요" autocomplete="current-password">
+      <button type="submit" class="btn">로그인</button>
+      <div class="err" id="loginErr"></div>
+    </form>
+    <p class="hint">데모 계정 &nbsp;·&nbsp; 아이디: <b>admin</b> / 비밀번호: <b>1234</b></p>
+  </div>
+
+  <!-- 대시보드 -->
+  <div class="app hidden" id="dashboard">
+    <div class="topbar">
+      <div class="brand">
+        <div class="logo">🚀</div>
+        <h1>Traffic<span>Boost</span></h1>
+      </div>
+      <div class="user">
+        <span class="badge live">● LIVE</span>
+        <div class="avatar" id="avatar">A</div>
+        <span id="welcome">admin 님</span>
+        <button class="logout" id="logoutBtn">로그아웃</button>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="stat"><div class="k">오늘 전송된 트래픽</div><div class="v" id="statToday">0 <small>hits</small></div></div>
+      <div class="stat"><div class="k">누적 전송</div><div class="v" id="statTotal">1,284,920 <small>hits</small></div></div>
+      <div class="stat"><div class="k">활성 프록시 노드</div><div class="v" id="statNodes">3,472 <small>개</small></div></div>
+    </div>
+
+    <div class="card">
+      <h2>🎯 트래픽 전송</h2>
+      <div class="row">
+        <div class="field">
+          <label for="linkInput">대상 링크 (URL)</label>
+          <input type="text" id="linkInput" placeholder="https://example.com/my-page">
+        </div>
+        <div class="field small">
+          <label for="hitCount">전송 횟수</label>
+          <select id="hitCount">
+            <option value="500">500</option>
+            <option value="1000" selected>1,000</option>
+            <option value="5000">5,000</option>
+            <option value="10000">10,000</option>
+          </select>
+        </div>
+        <div class="field small">
+          <label for="region">지역</label>
+          <select id="region">
+            <option>🌏 글로벌</option>
+            <option>🇰🇷 한국</option>
+            <option>🇺🇸 미국</option>
+            <option>🇯🇵 일본</option>
+            <option>🇪🇺 유럽</option>
+          </select>
+        </div>
+        <button class="send-btn" id="sendBtn">트래픽 전송 ▶</button>
+      </div>
+
+      <div class="progress-wrap">
+        <div class="bar"><div class="bar-fill" id="barFill"></div></div>
+        <div class="progress-meta">
+          <span id="progressText">대기 중…</span>
+          <span id="progressPct">0%</span>
+        </div>
+      </div>
+
+      <div class="console" id="console">
+        <div class="line c-muted">$ TrafficBoost 엔진 준비 완료. 링크를 입력하고 전송을 시작하세요.</div>
+      </div>
+    </div>
+
+    <p class="footer">© 2026 TrafficBoost Pro · 본 화면은 데모용이며 실제 트래픽을 전송하지 않습니다.</p>
+  </div>
+
+<script>
+(function(){
+  const $ = id => document.getElementById(id);
+
+  /* ---------- 로그인 ---------- */
+  const VALID = { user:'admin', pass:'1234' };
+
+  $('loginForm').addEventListener('submit', function(e){
+    e.preventDefault();
+    const u = $('uid').value.trim();
+    const p = $('pw').value;
+    if(!u || !p){ $('loginErr').textContent = '아이디와 비밀번호를 모두 입력하세요.'; return; }
+    if(u === VALID.user && p === VALID.pass){
+      $('loginErr').textContent = '';
+      $('loginScreen').classList.add('hidden');
+      $('dashboard').classList.remove('hidden');
+      $('welcome').textContent = u + ' 님';
+      $('avatar').textContent = u.charAt(0).toUpperCase();
+      log('로그인 성공: ' + u, 'ok');
+    } else {
+      $('loginErr').textContent = '아이디 또는 비밀번호가 올바르지 않습니다.';
+    }
+  });
+
+  $('logoutBtn').addEventListener('click', function(){
+    $('dashboard').classList.add('hidden');
+    $('loginScreen').classList.remove('hidden');
+    $('pw').value = '';
+  });
+
+  /* ---------- 콘솔 로그 ---------- */
+  function log(msg, type){
+    const c = $('console');
+    const div = document.createElement('div');
+    div.className = 'line ' + (type ? 'c-'+type : 'c-muted');
+    const t = new Date().toLocaleTimeString('ko-KR', {hour12:false});
+    div.textContent = '[' + t + '] ' + msg;
+    c.appendChild(div);
+    c.scrollTop = c.scrollHeight;
+  }
+
+  /* ---------- 가짜 IP 생성 ---------- */
+  function randIP(){
+    const r = () => Math.floor(Math.random()*254)+1;
+    return r()+'.'+r()+'.'+r()+'.'+r();
+  }
+  function fmt(n){ return n.toLocaleString('en-US'); }
+
+  /* ---------- 트래픽 전송(데모) ---------- */
+  let running = false;
+  let todayCount = 0;
+  let totalCount = 1284920;
+
+  $('sendBtn').addEventListener('click', function(){
+    if(running) return;
+    const url = $('linkInput').value.trim();
+    if(!url){ log('오류: 대상 링크를 입력하세요.', 'warn'); $('linkInput').focus(); return; }
+    if(!/^https?:\/\//i.test(url)){ log('오류: http:// 또는 https:// 로 시작하는 URL을 입력하세요.', 'warn'); return; }
+
+    const target = parseInt($('hitCount').value, 10);
+    const region = $('region').value;
+    startSend(url, target, region);
+  });
+
+  function startSend(url, target, region){
+    running = true;
+    $('sendBtn').disabled = true;
+    $('barFill').style.width = '0%';
+    log('─────────────────────────────', 'muted');
+    log('전송 시작 → ' + url, 'info');
+    log('설정: ' + fmt(target) + ' hits · ' + region, 'muted');
+    log('프록시 노드 풀 초기화 중…', 'muted');
+
+    let sent = 0;
+    const step = Math.max(1, Math.floor(target/60));
+    const startTotal = totalCount;
+
+    const timer = setInterval(function(){
+      sent += Math.floor(step * (0.6 + Math.random()*0.8));
+      if(sent > target) sent = target;
+
+      const pct = Math.floor(sent/target*100);
+      $('barFill').style.width = pct + '%';
+      $('progressPct').textContent = pct + '%';
+      $('progressText').textContent = fmt(sent) + ' / ' + fmt(target) + ' hits 전송됨';
+
+      todayCount = sent;
+      totalCount = startTotal + sent;
+      $('statToday').innerHTML = fmt(todayCount) + ' <small>hits</small>';
+      $('statTotal').innerHTML = fmt(totalCount) + ' <small>hits</small>';
+
+      if(Math.random() < 0.55){
+        const code = Math.random() < 0.9 ? '200 OK' : '301 Redirect';
+        log('GET ' + url + '  ← ' + randIP() + '  ['+code+']', 'ok');
+      }
+
+      if(sent >= target){
+        clearInterval(timer);
+        running = false;
+        $('sendBtn').disabled = false;
+        $('progressText').textContent = '전송 완료 ✔';
+        log('✔ 전송 완료: ' + fmt(target) + ' hits 성공적으로 전송되었습니다.', 'ok');
+        log('성공률: ' + (97 + Math.floor(Math.random()*3)) + '.' + Math.floor(Math.random()*10) + '%', 'info');
+        log('─────────────────────────────', 'muted');
+      }
+    }, 120);
+  }
+
+  /* 활성 노드 수 살짝 흔들어서 살아있는 느낌 */
+  setInterval(function(){
+    if($('dashboard').classList.contains('hidden')) return;
+    const base = 3472 + Math.floor(Math.random()*120 - 60);
+    $('statNodes').innerHTML = fmt(base) + ' <small>개</small>';
+  }, 2500);
+})();
+</script>
+</body>
+</html>
